@@ -23,6 +23,12 @@ function statusClass(s) {
   return map[s] || "s-scheduled"
 }
 
+function formatDate(iso) {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  return d.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" })
+}
+
 export default function App() {
   const [tab, setTab] = useState("arrivals")
   const [flights, setFlights] = useState([])
@@ -46,11 +52,16 @@ export default function App() {
     setLoading(true)
     try {
       const res = await fetch(
-        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=100`
+        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=300`
       )
       const data = await res.json()
       if (data.result && data.result.records) {
-        setFlights(data.result.records)
+        const today = new Date().toISOString().slice(0, 10)
+        const todayFlights = data.result.records.filter(f => {
+          const t = f.CHSTOL || f.CHPTOL || ""
+          return t.startsWith(today)
+        })
+        setFlights(todayFlights)
       }
     } catch (e) {
       console.log("שגיאה", e)
@@ -61,7 +72,7 @@ export default function App() {
   const filtered = flights.filter((f) => {
     const dest = f.CHLOC1T || f.CHLOC1CH || ""
     const num = f.CHFLTN || ""
-    const airline = f.CHOPER || ""
+    const airline = f.CHOPERD || f.CHOPER || ""
     return !search ||
       dest.toLowerCase().includes(search.toLowerCase()) ||
       num.toLowerCase().includes(search.toLowerCase()) ||
@@ -70,6 +81,7 @@ export default function App() {
 
   const pad = (n) => String(n).padStart(2, "0")
   const clockStr = `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
+  const dateStr = new Date().toLocaleDateString("he-IL", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })
 
   return (
     <div className="app">
@@ -84,8 +96,9 @@ export default function App() {
         <div className="header-stats">
           <div className="stat">
             <div className="stat-val">{flights.length}</div>
-            <div className="stat-label">טיסות</div>
+            <div className="stat-label">טיסות היום</div>
           </div>
+          <div className="date-display">{dateStr}</div>
         </div>
         <div className="header-right">
           <div className="clock">{clockStr}</div>
@@ -104,13 +117,14 @@ export default function App() {
           </div>
           {loading && <div className="loading-bar"><div className="loading-fill" /></div>}
           <div className="search-bar">
-            <input className="search-input" placeholder="חפש יעד, מספר טיסה..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input className="search-input" placeholder="חפש יעד, מספר טיסה, חברה..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flights-list">
             {filtered.length === 0 && !loading && <div className="no-flights">לא נמצאו טיסות</div>}
             {filtered.map((f, i) => {
               const num = f.CHFLTN || "—"
               const dest = f.CHLOC1T || f.CHLOC1CH || "—"
+              const airline = f.CHOPERD || f.CHOPER || "—"
               const flightTime = (f.CHSTOL || f.CHPTOL || "—").slice(11, 16)
               const status = f.CHRMINH || "—"
               const gate = f.CHGATE || "—"
@@ -124,6 +138,7 @@ export default function App() {
                   </div>
                   <div className="flight-row2">
                     <span className="flight-time">{flightTime}</span>
+                    <span className="flight-airline">{airline}</span>
                     <span className="flight-gate">שער <span className="gate-val">{gate}</span></span>
                   </div>
                 </div>
@@ -156,11 +171,11 @@ export default function App() {
               <div className="detail-header">
                 <div>
                   <div className="detail-flight-num">{selected.CHFLTN}</div>
-                  <div className="detail-airline">{selected.CHOPER}</div>
+                  <div className="detail-airline">{selected.CHOPERD || selected.CHOPER}</div>
                 </div>
                 <div className="close-btn" onClick={() => setSelected(null)}>✕</div>
               </div>
-              <div className="detail-grid">
+              <div class="detail-grid">
                 <div className="detail-cell">
                   <div className="detail-cell-label">יעד</div>
                   <div className="detail-cell-val">{selected.CHLOC1T || "—"}</div>
@@ -174,6 +189,10 @@ export default function App() {
                   <div className="detail-cell-val">{(selected.CHSTOL || selected.CHPTOL || "—").slice(11, 16)}</div>
                 </div>
                 <div className="detail-cell">
+                  <div className="detail-cell-label">תאריך</div>
+                  <div className="detail-cell-val">{formatDate(selected.CHSTOL || selected.CHPTOL)}</div>
+                </div>
+                <div className="detail-cell">
                   <div className="detail-cell-label">שער</div>
                   <div className="detail-cell-val">{selected.CHGATE || "—"}</div>
                 </div>
@@ -184,6 +203,10 @@ export default function App() {
                 <div className="detail-cell">
                   <div className="detail-cell-label">מדינה</div>
                   <div className="detail-cell-val">{selected.CHLOC1CH || "—"}</div>
+                </div>
+                <div className="detail-cell">
+                  <div className="detail-cell-label">חברה</div>
+                  <div className="detail-cell-val">{selected.CHOPERD || selected.CHOPER || "—"}</div>
                 </div>
               </div>
               <div className="opensky-badge">📡 data.gov.il · נתונים חיים</div>
