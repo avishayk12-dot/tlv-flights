@@ -38,13 +38,15 @@ export default function App() {
 
   useEffect(() => {
     fetchFlights()
+    const interval = setInterval(fetchFlights, 60000)
+    return () => clearInterval(interval)
   }, [tab])
 
   async function fetchFlights() {
     setLoading(true)
     try {
       const res = await fetch(
-        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=50`
+        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=100`
       )
       const data = await res.json()
       if (data.result && data.result.records) {
@@ -57,9 +59,13 @@ export default function App() {
   }
 
   const filtered = flights.filter((f) => {
-    const dest = f.CHDEST || f.CHOPER || ""
+    const dest = f.CHLOC1T || f.CHLOC1CH || ""
     const num = f.CHFLTN || ""
-    return !search || dest.toLowerCase().includes(search.toLowerCase()) || num.toLowerCase().includes(search.toLowerCase())
+    const airline = f.CHOPER || ""
+    return !search ||
+      dest.toLowerCase().includes(search.toLowerCase()) ||
+      num.toLowerCase().includes(search.toLowerCase()) ||
+      airline.toLowerCase().includes(search.toLowerCase())
   })
 
   const pad = (n) => String(n).padStart(2, "0")
@@ -104,9 +110,9 @@ export default function App() {
             {filtered.length === 0 && !loading && <div className="no-flights">לא נמצאו טיסות</div>}
             {filtered.map((f, i) => {
               const num = f.CHFLTN || "—"
-              const dest = f.CHDEST || f.CHOPER || "—"
-              const flightTime = f.CHSTOL || f.CHPTOL || "—"
-              const status = f.CHREMARK || "—"
+              const dest = f.CHLOC1T || f.CHLOC1CH || "—"
+              const flightTime = (f.CHSTOL || f.CHPTOL || "—").slice(11, 16)
+              const status = f.CHRMINH || "—"
               const gate = f.CHGATE || "—"
               const isSel = selected && selected.CHFLTN === f.CHFLTN
               return (
@@ -117,7 +123,7 @@ export default function App() {
                     <span className={`flight-status ${statusClass(status)}`}>{status}</span>
                   </div>
                   <div className="flight-row2">
-                    <span className="flight-time">{flightTime?.slice(0, 5)}</span>
+                    <span className="flight-time">{flightTime}</span>
                     <span className="flight-gate">שער <span className="gate-val">{gate}</span></span>
                   </div>
                 </div>
@@ -157,15 +163,15 @@ export default function App() {
               <div className="detail-grid">
                 <div className="detail-cell">
                   <div className="detail-cell-label">יעד</div>
-                  <div className="detail-cell-val">{selected.CHDEST || "—"}</div>
+                  <div className="detail-cell-val">{selected.CHLOC1T || "—"}</div>
                 </div>
                 <div className="detail-cell">
                   <div className="detail-cell-label">סטטוס</div>
-                  <div className="detail-cell-val hl">{selected.CHREMARK || "—"}</div>
+                  <div className="detail-cell-val hl">{selected.CHRMINH || "—"}</div>
                 </div>
                 <div className="detail-cell">
                   <div className="detail-cell-label">שעה מתוכננת</div>
-                  <div className="detail-cell-val">{(selected.CHSTOL || selected.CHPTOL || "—").slice(0, 5)}</div>
+                  <div className="detail-cell-val">{(selected.CHSTOL || selected.CHPTOL || "—").slice(11, 16)}</div>
                 </div>
                 <div className="detail-cell">
                   <div className="detail-cell-label">שער</div>
@@ -173,11 +179,11 @@ export default function App() {
                 </div>
                 <div className="detail-cell">
                   <div className="detail-cell-label">טרמינל</div>
-                  <div className="detail-cell-val">{selected.CHTERMINAL || "—"}</div>
+                  <div className="detail-cell-val">{selected.CHTERM || "—"}</div>
                 </div>
                 <div className="detail-cell">
-                  <div className="detail-cell-label">חברה</div>
-                  <div className="detail-cell-val">{selected.CHOPER || "—"}</div>
+                  <div className="detail-cell-label">מדינה</div>
+                  <div className="detail-cell-val">{selected.CHLOC1CH || "—"}</div>
                 </div>
               </div>
               <div className="opensky-badge">📡 data.gov.il · נתונים חיים</div>
