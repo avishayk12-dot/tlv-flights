@@ -14,13 +14,16 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), #0066cc); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .logo-text { font-size: 18px; font-weight: 700; }
 .logo-sub { font-size: 11px; color: var(--text2); font-family: monospace; }
+.header-stats { display: flex; align-items: center; gap: 24px; }
 .header-right { display: flex; align-items: center; gap: 12px; }
 .clock { font-family: monospace; font-size: 13px; color: var(--text2); }
 .live-badge { display: flex; align-items: center; gap: 6px; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--accent2); font-weight: 600; }
 .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.stat { text-align: center; }
 .stat-val { font-size: 20px; font-weight: 700; font-family: monospace; color: var(--accent); }
 .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; }
+.date-display { font-size: 12px; color: var(--text2); }
 
 .main { display: grid; grid-template-columns: 420px 1fr; flex: 1; overflow: hidden; }
 
@@ -44,8 +47,9 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .flight-item:hover { background: rgba(0,170,255,0.04); }
 .flight-item.selected { background: rgba(0,170,255,0.08); border-right: 3px solid var(--accent); }
 .flight-row1 { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-.flight-num { font-family: monospace; font-size: 12px; color: var(--text2); }
-.flight-dest { font-size: 14px; font-weight: 700; flex: 1; }
+.flight-num { font-family: monospace; font-size: 12px; color: var(--text2); white-space: nowrap; }
+.flight-dest { display: flex; flex-direction: column; font-size: 14px; font-weight: 700; flex: 1; }
+.flight-dest-heb { font-size: 11px; color: var(--text2); font-weight: 400; }
 .flight-status { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 12px; white-space: nowrap; }
 .s-landed { background: rgba(0,255,136,0.12); color: #00ff88; border: 1px solid rgba(0,255,136,0.25); }
 .s-inflight { background: rgba(0,170,255,0.12); color: #00aaff; border: 1px solid rgba(0,170,255,0.25); }
@@ -56,6 +60,7 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .s-boarding { background: rgba(0,221,170,0.1); color: #00ddaa; border: 1px solid rgba(0,221,170,0.25); }
 .flight-row2 { display: flex; align-items: center; justify-content: space-between; }
 .flight-time { font-family: monospace; font-size: 18px; font-weight: 600; color: var(--accent); }
+.flight-airline { font-size: 11px; color: var(--text2); flex: 1; text-align: center; }
 .flight-gate { font-size: 11px; color: var(--text2); }
 .gate-val { font-family: monospace; font-weight: 600; color: var(--text); }
 .no-flights { padding: 40px; text-align: center; color: var(--text3); }
@@ -80,5 +85,3 @@ body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--tex
 .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--text2); }
 .legend-item:last-child { margin-bottom: 0; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-.date-display { font-size: 12px; color: var(--text2); }
-.flight-airline { font-size: 11px; color: var(--text2); flex: 1; text-align: center; }

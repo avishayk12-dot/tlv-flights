@@ -31,7 +31,8 @@ function formatDate(iso) {
 
 export default function App() {
   const [tab, setTab] = useState("arrivals")
-  const [flights, setFlights] = useState([])
+  const [arrivals, setArrivals] = useState([])
+  const [departures, setDepartures] = useState([])
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState("")
   const [time, setTime] = useState(new Date())
@@ -46,28 +47,31 @@ export default function App() {
     fetchFlights()
     const interval = setInterval(fetchFlights, 60000)
     return () => clearInterval(interval)
-  }, [tab])
+  }, [])
 
   async function fetchFlights() {
     setLoading(true)
     try {
       const res = await fetch(
-        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=300`
+        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=1000`
       )
       const data = await res.json()
       if (data.result && data.result.records) {
         const today = new Date().toISOString().slice(0, 10)
-        const todayFlights = data.result.records.filter(f => {
+        const all = data.result.records.filter(f => {
           const t = f.CHSTOL || f.CHPTOL || ""
           return t.startsWith(today)
         })
-        setFlights(todayFlights)
+        setArrivals(all.filter(f => f.CHAORD === "A"))
+        setDepartures(all.filter(f => f.CHAORD === "D"))
       }
     } catch (e) {
       console.log("שגיאה", e)
     }
     setLoading(false)
   }
+
+  const flights = tab === "arrivals" ? arrivals : departures
 
   const filtered = flights.filter((f) => {
     const dest = f.CHLOC1T || f.CHLOC1CH || ""
@@ -95,8 +99,12 @@ export default function App() {
         </div>
         <div className="header-stats">
           <div className="stat">
-            <div className="stat-val">{flights.length}</div>
-            <div className="stat-label">טיסות היום</div>
+            <div className="stat-val">{arrivals.length}</div>
+            <div className="stat-label">נחיתות</div>
+          </div>
+          <div className="stat">
+            <div className="stat-val" style={{color:"var(--accent2)"}}>{departures.length}</div>
+            <div className="stat-label">המראות</div>
           </div>
           <div className="date-display">{dateStr}</div>
         </div>
@@ -112,8 +120,8 @@ export default function App() {
       <div className="main">
         <div className="flights-panel">
           <div className="panel-tabs">
-            <div className={`tab ${tab === "arrivals" ? "active" : ""}`} onClick={() => setTab("arrivals")}>🛬 נחיתות</div>
-            <div className={`tab ${tab === "departures" ? "active" : ""}`} onClick={() => setTab("departures")}>🛫 המראות</div>
+            <div className={`tab ${tab === "arrivals" ? "active" : ""}`} onClick={() => { setTab("arrivals"); setSelected(null) }}>🛬 נחיתות ({arrivals.length})</div>
+            <div className={`tab ${tab === "departures" ? "active" : ""}`} onClick={() => { setTab("departures"); setSelected(null) }}>🛫 המראות ({departures.length})</div>
           </div>
           {loading && <div className="loading-bar"><div className="loading-fill" /></div>}
           <div className="search-bar">
@@ -123,7 +131,8 @@ export default function App() {
             {filtered.length === 0 && !loading && <div className="no-flights">לא נמצאו טיסות</div>}
             {filtered.map((f, i) => {
               const num = f.CHFLTN || "—"
-              const dest = f.CHLOC1T || f.CHLOC1CH || "—"
+              const destEn = f.CHLOC1T || "—"
+              const destHe = f.CHLOC1CH || ""
               const airline = f.CHOPERD || f.CHOPER || "—"
               const flightTime = (f.CHSTOL || f.CHPTOL || "—").slice(11, 16)
               const status = f.CHRMINH || "—"
@@ -133,7 +142,10 @@ export default function App() {
                 <div key={i} className={`flight-item ${isSel ? "selected" : ""}`} onClick={() => setSelected(f)}>
                   <div className="flight-row1">
                     <span className="flight-num">{num}</span>
-                    <span className="flight-dest">{dest}</span>
+                    <span className="flight-dest">
+                      {destEn}
+                      {destHe && <span className="flight-dest-heb">{destHe}</span>}
+                    </span>
                     <span className={`flight-status ${statusClass(status)}`}>{status}</span>
                   </div>
                   <div className="flight-row2">
@@ -175,7 +187,7 @@ export default function App() {
                 </div>
                 <div className="close-btn" onClick={() => setSelected(null)}>✕</div>
               </div>
-              <div class="detail-grid">
+              <div className="detail-grid">
                 <div className="detail-cell">
                   <div className="detail-cell-label">יעד</div>
                   <div className="detail-cell-val">{selected.CHLOC1T || "—"}</div>
