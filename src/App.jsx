@@ -44,7 +44,7 @@ export default function App() {
     setLoading(true)
     try {
       const res = await fetch(
-        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-4b8d-b41b-b2e61dfa5fec&limit=50`
+        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=50`
       )
       const data = await res.json()
       if (data.result && data.result.records) {
