@@ -52,19 +52,25 @@ export default function App() {
   async function fetchFlights() {
     setLoading(true)
     try {
-      const res = await fetch(
-        `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=1000`
-      )
-      const data = await res.json()
-      if (data.result && data.result.records) {
-        const today = new Date().toISOString().slice(0, 10)
-        const all = data.result.records.filter(f => {
+      const today = new Date().toISOString().slice(0, 10)
+      let all = []
+      let offset = 0
+      while (true) {
+        const res = await fetch(
+          `/api/3/action/datastore_search?resource_id=e83f763b-b7d7-479e-b172-ae981ddc6de5&limit=1000&offset=${offset}`
+        )
+        const data = await res.json()
+        const records = data.result?.records || []
+        const todayRecords = records.filter(f => {
           const t = f.CHSTOL || f.CHPTOL || ""
           return t.startsWith(today)
         })
-        setArrivals(all.filter(f => f.CHAORD === "A"))
-        setDepartures(all.filter(f => f.CHAORD === "D"))
+        all = [...all, ...todayRecords]
+        if (records.length < 1000) break
+        offset += 1000
       }
+      setArrivals(all.filter(f => f.CHAORD === "A"))
+      setDepartures(all.filter(f => f.CHAORD === "D"))
     } catch (e) {
       console.log("שגיאה", e)
     }
