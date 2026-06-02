@@ -81,7 +81,7 @@ export default function App() {
 
   const filtered = flights.filter((f) => {
     const dest = f.CHLOC1T || f.CHLOC1CH || ""
-    const num = f.CHFLTN || ""
+    const num = (f.CHOPER || "") + (f.CHFLTN || "") || "—"
     const airline = f.CHOPERD || f.CHOPER || ""
     return !search ||
       dest.toLowerCase().includes(search.toLowerCase()) ||
