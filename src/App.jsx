@@ -81,7 +81,7 @@ export default function App() {
 
   const filtered = flights.filter((f) => {
     const dest = f.CHLOC1T || f.CHLOC1CH || ""
-    const num = (f.CHOPER || "") + (f.CHFLTN || "") || "—"
+    const num = (f.CHOPER || "") + (f.CHFLTN || "")
     const airline = f.CHOPERD || f.CHOPER || ""
     return !search ||
       dest.toLowerCase().includes(search.toLowerCase()) ||
@@ -136,7 +136,7 @@ export default function App() {
           <div className="flights-list">
             {filtered.length === 0 && !loading && <div className="no-flights">לא נמצאו טיסות</div>}
             {filtered.map((f, i) => {
-              const num = f.CHFLTN || "—"
+              const num = ((f.CHOPER || "") + (f.CHFLTN || "")).trim() || "—"
               const destEn = f.CHLOC1T || "—"
               const destHe = f.CHLOC1CH || ""
               const airline = f.CHOPERD || f.CHOPER || "—"
